@@ -4,10 +4,10 @@
     "version": 1,
 
     // The name of the project being benchmarked
-    "project": "bdot",
+    "project": "bvec",
 
     // The project's homepage
-    "project_url": "https://github.com/tailwind/bdot",
+    "project_url": "https://github.com/waylonflinn/bvec",
 
     // The URL or local path of the source code repository for the
     // project being benchmarked

@@ -27,7 +27,7 @@ try:
     from Cython.Distutils import build_ext
 except:
     exit_with_error(
-        "You need %(pkgname)s %(pkgver)s or greater to compile bdot!"
+        "You need %(pkgname)s %(pkgver)s or greater to compile bvec!"
         % {'pkgname': 'Cython', 'pkgver': min_cython_version})
 
 if cur_cython_version < min_cython_version:
@@ -40,7 +40,7 @@ else:
 
 ########### Project specific command line options ###########
 
-class bdot_build_ext(build_ext):
+class bvec_build_ext(build_ext):
     user_options = build_ext.user_options
 
     def initialize_options(self):
@@ -57,16 +57,16 @@ class bdot_build_ext(build_ext):
 
 VERSION = open('VERSION').read().strip()
 # Create the version.py file
-open('bdot/version.py', 'w').write('__version__ = "%s"\n' % VERSION)
+open('bvec/version.py', 'w').write('__version__ = "%s"\n' % VERSION)
 
 
 
 # Sources & libraries
-inc_dirs = ['bdot']
+inc_dirs = ['bvec']
 lib_dirs = []
 libs = []
 def_macros = []
-sources_carray = ["bdot/carray_ext.pyx"]
+sources_carray = ["bvec/carray_ext.pyx"]
 
 # Include NumPy header dirs
 from numpy.distutils.misc_util import get_numpy_include_dirs
@@ -74,32 +74,32 @@ from numpy.distutils.misc_util import get_numpy_include_dirs
 inc_dirs.extend(get_numpy_include_dirs())
 
 long_desc = """
-Bdot does big dot products (by making your RAM bigger on the inside). 
-It aims to let you do all the things you want to do with numpy, 
-but don't have enough memory for. You can also use it to save space
-in the cloud and quickly build production microservices.
+Bvec does big vector operations. It aims to let you do all the things you want
+to do with numpy, but don't have enough memory for.
+You can also use it to save space in the cloud and quickly build production
+microservices.
 
 It's pretty math.
 
-Bdot is based on Bcolz and includes transparent disk-based storage. It was created 
-to simplify production implementation of nearest neighbor search and other fancy 
+bvec is based on Bcolz and includes transparent disk-based storage. It was created
+to simplify production implementation of nearest neighbor search and other fancy
 machine learning rigmarole.
 """
 
 setup(
-    name = 'bdot',
+    name = 'bvec',
     version = VERSION,
-    description = 'Fast Dot Products on Pretty Big Data (powered by Bcolz)',
+    description = 'Fast Vector Operations on Pretty Big Data (powered by Bcolz)',
     long_description= long_desc,
-    url='https://github.com/tailwind/bdot',
+    url='https://github.com/waylonflinn/bvec',
     author='Waylon Flinn',
-    cmdclass={'build_ext' : bdot_build_ext},
+    cmdclass={'build_ext' : bvec_build_ext},
     ext_modules = [
-          Extension("bdot.carray_ext",
+          Extension("bvec.carray_ext",
                     include_dirs=inc_dirs,
                     sources=sources_carray)
           ],
-    packages=['bdot', 'bdot.tests'],
+    packages=['bvec', 'bvec.tests'],
     data_files=[('.' , ['VERSION'])],
     install_requires=['cython>=0.20', 'numpy>=1.7.0', 'bcolz>=0.9.0'],
     license='MIT',

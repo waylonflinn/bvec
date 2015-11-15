@@ -1,7 +1,7 @@
 # internal imports
-from bdot import carray_ext
+from bvec import carray_ext
 
-import bdot
+import bvec
 
 # external imports
 import numpy as np
@@ -17,7 +17,7 @@ class carray(bcolz.carray):
 
 			If `out` is provided it's shape must match the output which would be
 			constructed, or an error will be raised. If you want to use the `out`
-			parameter, but aren't sure how, use `bdot.carray.empty_like_dot()`
+			parameter, but aren't sure how, use `bvec.carray.empty_like_dot()`
 
 		Arguments:
 			matrix (carray): two dimensional matrix in a bcolz.carray, row
@@ -36,19 +36,17 @@ class carray(bcolz.carray):
 			(type(matrix) == carray) and (self.shape[1] != matrix.shape[1])):
 			raise ValueError("inputs must have compatible shapes. Found {0} and {1}".format(self.shape, matrix.shape))
 
+		# create output container, if none is supplied
+		if out is None:
+			out = self.empty_like_dot(matrix)
+
 		if type(matrix) == np.ndarray:
+			# input is a vector
 
 			assert len(matrix.shape) == 1
 
-			# create output container, or check existing one
-			if out is None:
-				try:
-					out =  np.empty(self.shape[0], dtype=self.dtype)
-				except:
-					raise MemoryError("couldn't create result array")
-
-			else:
-				assert len(out.shape) == 1
+			# check output container
+			assert len(out.shape) == 1
 
 			if type(out) == np.ndarray:
 				assert out.shape[0] == self.shape[0]
@@ -62,16 +60,13 @@ class carray(bcolz.carray):
 				carray_ext._dot_carray(self, matrix, out)
 				return out
 		else:
+			# input is a matrix
 
 			assert len(matrix.shape) == 2
 
-			# create output container, or check existing one
-			if out is None:
-				out = self.empty_like_dot(matrix)
-			else:
-				assert len(out.shape) == 2
-				assert out.shape[0] == self.shape[0]
-				assert out.shape[1] == matrix.shape[0]
+			# check output container
+			assert len(out.shape) == 2
+			assert out.shape[1] == matrix.shape[0]
 
 
 			if type(out) == np.ndarray:
@@ -85,29 +80,32 @@ class carray(bcolz.carray):
 
 	def empty_like_dot(self, matrix, chunklen=None, cparams=None, rootdir=None):
 		'''
-		Create en empty bdot.carray for use with the out parameter
+		Create en empty bvec.carray for use with the out parameter
 		of the dot method. Allows saving to disk, selection of
 		compression ratio and modification of other carray parameters.
 
 		This is a relatively cheap operation.
 		'''
+		if chunklen == None:
+			chunklen = self.chunklen
+
 		if type(matrix) == np.ndarray:
 
 			assert len(matrix.shape) == 1
 
-			return self.empty_like(shape=(self.shape[0],), chunklen=None, cparams=cparams, rootdir=rootdir)
+			return self.empty_like(shape=(self.shape[0],), chunklen=chunklen, cparams=cparams, rootdir=rootdir)
 
 		elif isinstance(matrix, bcolz.carray):
 
 			assert len(matrix.shape) == 2
 
-			return self.empty_like(shape=(self.shape[0], matrix.shape[0]), chunklen=None, cparams=cparams, rootdir=rootdir)
+			return self.empty_like(shape=(self.shape[0], matrix.shape[0]), chunklen=chunklen, cparams=cparams, rootdir=rootdir)
 
 
 
 	def empty_like(self, shape=None, chunklen=None, cparams=None, rootdir=None):
 		'''
-		Create an empty bdot.carray container matching this one, with optional
+		Create an empty bvec.carray container matching this one, with optional
 		modifications.
 		'''
 
@@ -120,13 +118,13 @@ class carray(bcolz.carray):
 		if(len(shape) == 1):
 
 			result_template = np.ndarray(shape=(0), dtype=p_dtype)
-			return bdot.carray(result_template, expectedlen=shape[0], chunklen=chunklen, cparams=cparams, rootdir=rootdir)
+			return bvec.carray(result_template, expectedlen=shape[0], chunklen=chunklen, cparams=cparams, rootdir=rootdir)
 
 
 		elif(len(self.shape) == 2):
 
 			result_template = np.ndarray((0, shape[1]), dtype=p_dtype)
-			return bdot.carray(result_template, expectedlen=shape[0], chunklen=chunklen, cparams=cparams, rootdir=rootdir)
+			return bvec.carray(result_template, expectedlen=shape[0], chunklen=chunklen, cparams=cparams, rootdir=rootdir)
 
 
 		else:
