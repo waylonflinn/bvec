@@ -7,7 +7,7 @@
 
 
 ## Fast Vector Operations on Pretty Big Data
-Bvec is numpy for pretty big data<sup>1</sup>. It's based on [Bcolz](https://github.com/Blosc/bcolz/) and includes transparent disk-based storage.
+Bvec is numpy<sup>1</sup> for pretty big data<sup>2</sup>. It's based on [Bcolz](https://github.com/Blosc/bcolz/) and includes transparent disk-based storage.
 
 Supports
 
@@ -18,8 +18,9 @@ Supports
 * subtract
 
 
-<sup>1.</sup> Limited to 1-dimensional and 2-dimensional operations on numerical data types
+<sup>1.</sup> 1-dimensional and 2-dimensional operations on numerical data types
 (`numpy.int64`, `numpy.int32`, `numpy.float64`, `numpy.float32`).
+<sup>2.</sup> bigger than a breadbox, smaller than a blimp
 
 ## Install
 ```bash
