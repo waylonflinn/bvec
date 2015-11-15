@@ -10,13 +10,15 @@
 Bvec is numpy for pretty big data<sup>1</sup>. It's based on [Bcolz](https://github.com/Blosc/bcolz/) and includes transparent disk-based storage.
 
 Supports
-	* dot
-	* divide
-	* multiply
-	* add
-	* subtract
 
-1. Limited to 1-dimensional and 2-dimensional operations on numerical data types
+* dot
+* divide
+* multiply
+* add
+* subtract
+
+
+<sup>1.</sup> Limited to 1-dimensional and 2-dimensional operations on numerical data types
 (`numpy.int64`, `numpy.int32`, `numpy.float64`, `numpy.float32`).
 
 ## Install
