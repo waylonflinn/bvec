@@ -13,9 +13,11 @@ Supports
 
 * dot
 * divide
-* multiply
-* add
-* subtract
+
+Coming Soon
+* _multiply_
+* _add_
+* _subtract_
 
 
 <sup>1.</sup> 1-dimensional and 2-dimensional operations on numerical data types
