@@ -20,6 +20,7 @@ Supports
 
 <sup>1.</sup> 1-dimensional and 2-dimensional operations on numerical data types
 (`numpy.int64`, `numpy.int32`, `numpy.float64`, `numpy.float32`).
+
 <sup>2.</sup> bigger than a breadbox, smaller than a blimp
 
 ## Install
