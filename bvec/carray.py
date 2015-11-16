@@ -9,6 +9,23 @@ import bcolz
 
 class carray(bcolz.carray):
 
+	def divide(self, array, out=None):
+		'''
+			Divide a carray by an input carray, elementwise.
+
+		Arguments:
+			array (carray): 1-dimensional array to divide this carray by.
+
+			out: container to be used to hold the result (numpy.ndarray or bcolz.carray)
+		'''
+
+		out = self.empty_like(shape=(self.shape[0],))
+
+		carray_ext._divide_mat_carray(self, array, array[0], out)
+
+		return out
+
+
 	def dot(self, matrix, out=None):
 		'''
 			Dot product of two arrays, with bcolz.carray support. The `out`
@@ -23,7 +40,7 @@ class carray(bcolz.carray):
 			matrix (carray): two dimensional matrix in a bcolz.carray, row
 			vector format or a one dimensional numpy.ndarray.
 
-			out: contianer to be used as output (numpy.ndarray or bcolz.carray)
+			out: container to be used to hold the result (numpy.ndarray or bcolz.carray)
 		'''
 
 

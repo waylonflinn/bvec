@@ -19,6 +19,115 @@ ctypedef fused numpy_native_number:
 	np.float64_t
 	np.float32_t
 
+@cython.wraparound(False)
+@cython.boundscheck(False)
+cpdef _divide_mat_carray(carray a1, carray a2, numpy_native_number type_indicator, carray c_result):
+	'''
+		Divide one 1-dimensional carray by another, elementwise.
+
+		Arguments:
+			a1 (carray): one dimensional matrix in a bcolz.carray
+			a2 (carray): one dimensional matrix in a bcolz.carray
+			type_indicator(ndarray) : hack to allow use of fused types (just pass in the first row)
+
+		Returns:
+			carray: result of elementwise divide between a1 and a2.T, carray
+			with length equal to each of the input lengths
+	'''
+
+	# fused type conversion
+	if numpy_native_number is np.int64_t:
+		p_dtype = np.int64
+	elif numpy_native_number is np.int32_t:
+		p_dtype = np.int32
+	elif numpy_native_number is np.float64_t:
+		p_dtype = np.float64
+	else:
+		p_dtype = np.float32
+
+	# declaration
+	cdef:
+		Py_ssize_t i, chunk_start, chunk_len, leftover_len
+		unsigned int j, offset
+		np.ndarray[numpy_native_number] buffer_large
+		np.ndarray[numpy_native_number] buffer
+		np.ndarray[numpy_native_number] result
+		chunk chunk_large
+		chunk chunk_small
+		carray a_large
+		carray a_small
+
+
+	# initialization
+	# pick the array with the largest chunklen
+	if(a1.chunklen > a2.chunklen):
+		a_large = a1
+		a_small = a2
+		large_first = True
+	else:
+		a_large = a2
+		a_small = a1
+		large_first = False
+
+	chunk_len = a_large.chunklen
+	leftover_len = cython.cmod(a_large.shape[0], a_large.chunklen)
+	small_leftover_len = cython.cmod(a_small.shape[0], a_small.chunklen)
+
+	try:
+		result = np.empty((chunk_len, ), dtype=p_dtype)
+		buffer_large = np.empty((chunk_len, ), dtype=p_dtype)
+		buffer = np.empty((chunk_len, ), dtype=p_dtype)
+	except:
+		raise MemoryError("couldn't created intermediate arrays")
+
+
+	# computation
+	j = 0
+	offset = 0
+	for i in range(a_large.nchunks):
+		# put large chunk in buffer
+		chunk_large = a_large.chunks[i]
+
+		chunk_large._getitem(0, chunk_len, buffer_large.data)
+
+		# fill up buffer with small chunks
+		offset = 0
+		while((j * a_small.chunklen + offset) < (i + 1) * chunk_len and j < a_small.nchunks):
+			chunk_small = a_small.chunks[j]
+
+			chunk_small._getitem(0, a_small.chunklen, buffer.data + offset)
+			offset += a_small.chunklen
+			j += 1
+
+		if(large_first):
+			np.divide(buffer_large, buffer, out=result)
+		else:
+			np.divide(buffer, buffer_large, out=result)
+
+		c_result.append(result)
+
+	if leftover_len > 0:
+
+		# fill up buffer with small chunks
+		offset = 0
+		while((j * a_small.chunklen + offset) < leftover_len and j < a_small.nchunks):
+			chunk_small = a_small.chunks[j]
+
+			chunk_small._getitem(0, a_small.chunklen, buffer.data + offset)
+			offset += a_small.chunklen
+			j += 1
+
+		if(small_leftover_len > 0):
+			buffer[offset:(offset+small_leftover_len)] = a_small.leftover_array[:small_leftover_len]
+
+		if(large_first):
+			np.divide(a_large.leftover_array, buffer, out=result)
+		else:
+			np.divide(buffer, a_large.leftover_array, out=result)
+
+		#write new chunk to result carray
+		c_result.append(result[:leftover_len])
+
 
 @cython.wraparound(False)
 @cython.boundscheck(False)

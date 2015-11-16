@@ -241,6 +241,18 @@ def test_dot_matrix_float32():
 
 	assert_array_almost_equal(expected, result, decimal=4)
 
+def test_divide_float64():
+
+	array = np.random.random_sample(size=(1000,))
+	bcarray1 = bvec.carray(array, chunklen=2**9, cparams=bvec.cparams(clevel=2))
+	bcarray2 = bvec.carray(array, chunklen=2**9, cparams=bvec.cparams(clevel=2))
+
+
+	result = bcarray1.divide(bcarray2)
+	expected = np.divide(array, array)
+
+	assert_array_almost_equal(expected, result, decimal=4)
+
 
 @raises(ValueError)
 def test_dot_incompatible_dtype():
