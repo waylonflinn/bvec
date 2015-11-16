@@ -48,7 +48,7 @@ cpdef _divide_mat_carray(carray a1, carray a2, numpy_native_number type_indicato
 	# declaration
 	cdef:
 		Py_ssize_t i, chunk_start, chunk_len, leftover_len
-		unsigned int j, offset
+		unsigned int j, current_buffer_data_size, current_buffer_element_count
 		np.ndarray[numpy_native_number] buffer_large
 		np.ndarray[numpy_native_number] buffer
 		np.ndarray[numpy_native_number] result
@@ -83,7 +83,6 @@ cpdef _divide_mat_carray(carray a1, carray a2, numpy_native_number type_indicato
 
 	# computation
 	j = 0
-	offset = 0
 	for i in range(a_large.nchunks):
 		# put large chunk in buffer
 		chunk_large = a_large.chunks[i]
@@ -91,12 +90,13 @@ cpdef _divide_mat_carray(carray a1, carray a2, numpy_native_number type_indicato
 		chunk_large._getitem(0, chunk_len, buffer_large.data)
 
 		# fill up buffer with small chunks
-		offset = 0
-		while((j * a_small.chunklen + offset) < (i + 1) * chunk_len and j < a_small.nchunks):
+		current_buffer_element_count = 0
+		while(current_buffer_element_count < chunk_len and j < a_small.nchunks):
 			chunk_small = a_small.chunks[j]
 
-			chunk_small._getitem(0, a_small.chunklen, buffer.data + offset)
-			offset += a_small.chunklen
+			current_buffer_data_size = current_buffer_element_count * buffer.itemsize
+			chunk_small._getitem(0, a_small.chunklen, buffer.data + current_buffer_data_size)
+			current_buffer_element_count += a_small.chunklen
 			j += 1
 
 		if(large_first):
@@ -109,16 +109,17 @@ cpdef _divide_mat_carray(carray a1, carray a2, numpy_native_number type_indicato
 	if leftover_len > 0:
 
 		# fill up buffer with small chunks
-		offset = 0
-		while((j * a_small.chunklen + offset) < leftover_len and j < a_small.nchunks):
+		current_buffer_element_count = 0
+		while(current_buffer_element_count < leftover_len and j < a_small.nchunks):
 			chunk_small = a_small.chunks[j]
 
-			chunk_small._getitem(0, a_small.chunklen, buffer.data + offset)
-			offset += a_small.chunklen
+			current_buffer_data_size = current_buffer_element_count * buffer.itemsize
+			chunk_small._getitem(0, a_small.chunklen, buffer.data + current_buffer_data_size)
+			current_buffer_element_count += a_small.chunklen
 			j += 1
 
 		if(small_leftover_len > 0):
-			buffer[offset:(offset+small_leftover_len)] = a_small.leftover_array[:small_leftover_len]
+			buffer[current_buffer_element_count:(current_buffer_element_count+small_leftover_len)] = a_small.leftover_array[:small_leftover_len]
 
 		if(large_first):
 			np.divide(a_large.leftover_array, buffer, out=result)
