@@ -1,13 +1,13 @@
 
 [![Build Status](https://travis-ci.org/waylonflinn/bvec.svg?branch=master)](https://travis-ci.org/waylonflinn/bvec)
 
-# Bvec
+# bvec
 
-![Bvec Logo](bvec.png)
+![bvec Logo](bvec.png)
 
 
 ## Fast Vector Operations on Pretty Big Data
-Bvec is numpy<sup>1</sup> for pretty big data<sup>2</sup>. It's based on [Bcolz](https://github.com/Blosc/bcolz/) and includes transparent disk-based storage for large results.
+bvec is numpy<sup>1</sup> for pretty big data<sup>2</sup>. It's based on [Bcolz](https://github.com/Blosc/bcolz/) and includes transparent disk-based storage for large results.
 
 Supports
 
@@ -137,11 +137,11 @@ So far, the first goal has been met.
 
 ## Acknowledgements
 
-This library wouldn't be possible without all the talented people who worked hard to create [Bcolz](https://github.com/Blosc/bcolz/) (and the libraries on which it's based).
+This library wouldn't be possible without all the talented people who worked hard to create [bcolz](https://github.com/Blosc/bcolz/) (and the libraries on which it's based).
 
-Initial code was also heavily influenced by [Bquery](https://github.com/visualfabriq/bquery).
+Initial code was also heavily influenced by [bquery](https://github.com/visualfabriq/bquery).
 
 Dot product code based on
-[Bdot](https://github.com/tailwind/bdot) (&copy; 2015 Tailwind)
+[bdot](https://github.com/tailwind/bdot) (&copy; 2015 Tailwind)
 
 Awesome TARDIS can be found [here](https://youtu.be/dUBxHd3bMhg?t=1m5s)
