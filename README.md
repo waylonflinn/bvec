@@ -7,7 +7,7 @@
 
 
 ## Fast Vector Operations on Pretty Big Data
-bvec is numpy<sup>1</sup> for pretty big data<sup>2</sup>. It's based on [Bcolz](https://github.com/Blosc/bcolz/) and includes transparent disk-based storage for large results.
+bvec is numpy<sup>1</sup> for pretty big data<sup>2</sup>. It's based on [bcolz](https://github.com/Blosc/bcolz/) and includes transparent disk-based storage for large results.
 
 Supports
 
