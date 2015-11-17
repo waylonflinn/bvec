@@ -9,6 +9,26 @@ import bcolz
 
 class carray(bcolz.carray):
 
+	def tondarray(self):
+
+		p_dtype = self.dtype
+
+		shape = self.shape
+
+		try:
+			result = np.empty(shape=self.shape, dtype=self.dtype)
+		except:
+			raise MemoryError("couldn't created intermediate arrays")
+
+		if(len(shape) == 1):
+			carray_ext._copy_array(self, result)
+
+		elif(len(self.shape) == 2):
+			carray_ext._copy_matrix(self, result)
+
+		return result
+
+
 	def divide(self, denominator, out=None):
 		'''
 			Divide a carray by an input carray, elementwise.
@@ -131,6 +151,7 @@ class carray(bcolz.carray):
 		'''
 
 		p_dtype = self.dtype
+
 		if shape == None:
 			shape = self.shape
 		if cparams == None:

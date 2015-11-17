@@ -21,12 +21,52 @@ ctypedef fused numpy_native_number:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
+cpdef _copy_array(carray a, np.ndarray[numpy_native_number, ndim=1] result):
+	'''
+		Copy a 1-dimensional carray into a numpy ndarray buffer.
+
+		Arguments:
+			a (carray): one dimensional array in a bcolz.carray
+			result (np.ndarray): container to hold contents of 'a'
+
+	'''
+	cdef:
+		Py_ssize_t i, chunk_len, leftover_len
+		unsigned int current_buffer_data_size, current_buffer_element_count
+		chunk chunk
+
+	chunk_len = a.chunklen
+	leftover_len = cython.cmod(a.shape[0], a.chunklen)
+	current_buffer_element_count = 0
+	current_buffer_data_size = 0
+
+
+	for i in range(a.nchunks):
+		# put large chunk in buffer
+		chunk = a.chunks[i]
+
+		# calculate size (bytes) of data
+		current_buffer_data_size = current_buffer_element_count * result.itemsize
+
+		# copy directly into result buffer, at correct byte offset
+		chunk._getitem(0, chunk_len, result.data + current_buffer_data_size)
+
+		current_buffer_element_count += chunk_len
+
+	if leftover_len > 0:
+
+		# copy leftover_array
+		result[current_buffer_element_count:] = a.leftover_array[:leftover_len]
+
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
 cpdef _divide_scalar(carray a1, numpy_native_number denominator, carray c_result):
 	'''
 		Divide one 1-dimensional carray by another, elementwise.
 
 		Arguments:
-			a1 (carray): one dimensional matrix in a bcolz.carray
+			a1 (carray): one dimensional array in a bcolz.carray
 			denominator (number): scalar to divide array by
 
 		Returns:
@@ -63,7 +103,6 @@ cpdef _divide_scalar(carray a1, numpy_native_number denominator, carray c_result
 
 
 	# computation
-
 	for i in range(a1.nchunks):
 		# put large chunk in buffer
 		chunk = a1.chunks[i]
@@ -89,8 +128,8 @@ cpdef _divide_carray(carray a1, carray a2, numpy_native_number type_indicator, c
 		Divide one 1-dimensional carray by another, elementwise.
 
 		Arguments:
-			a1 (carray): one dimensional matrix in a bcolz.carray
-			a2 (carray): one dimensional matrix in a bcolz.carray
+			a1 (carray): one dimensional array in a bcolz.carray
+			a2 (carray): one dimensional array in a bcolz.carray
 			type_indicator(ndarray) : hack to allow use of fused types (just pass in the first row)
 
 		Returns:

@@ -305,6 +305,17 @@ def test_divide_indivisible_chunklen_two_float64():
 
 	assert_array_almost_equal(expected, result, decimal=4)
 
+def test_tondarray_float64():
+
+	array1 = np.random.random_sample(size=(1000,))
+	bcarray1 = bvec.carray(array1, chunklen=2**9, cparams=bvec.cparams(clevel=2))
+
+
+	result = bcarray1.tondarray()
+	expected = array1
+
+	assert_array_almost_equal(expected, result, decimal=4)
+
 @raises(ValueError)
 def test_dot_incompatible_dtype():
 
@@ -314,6 +325,7 @@ def test_dot_incompatible_dtype():
 	v = bcarray[0].astype('int32')
 
 	result = bcarray.dot(v)
+
 
 '''
 @raises(ValueError)
