@@ -9,7 +9,7 @@ import bcolz
 
 class carray(bcolz.carray):
 
-	def divide(self, array, out=None):
+	def divide(self, denominator, out=None):
 		'''
 			Divide a carray by an input carray, elementwise.
 
@@ -21,7 +21,11 @@ class carray(bcolz.carray):
 
 		out = self.empty_like(shape=(self.shape[0],))
 
-		carray_ext._divide_mat_carray(self, array, array[0], out)
+		if(isinstance(denominator, bcolz.carray)):
+			carray_ext._divide_carray(self, denominator, denominator[0], out)
+		else:
+			# scalar division
+			carray_ext._divide_scalar(self, denominator, out)
 
 		return out
 

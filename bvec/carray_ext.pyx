@@ -21,7 +21,70 @@ ctypedef fused numpy_native_number:
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cpdef _divide_mat_carray(carray a1, carray a2, numpy_native_number type_indicator, carray c_result):
+cpdef _divide_scalar(carray a1, numpy_native_number denominator, carray c_result):
+	'''
+		Divide one 1-dimensional carray by another, elementwise.
+
+		Arguments:
+			a1 (carray): one dimensional matrix in a bcolz.carray
+			denominator (number): scalar to divide array by
+
+		Returns:
+			carray: result of elementwise divide of a1 by denominator
+	'''
+
+	# fused type conversion
+	if numpy_native_number is np.int64_t:
+		p_dtype = np.int64
+	elif numpy_native_number is np.int32_t:
+		p_dtype = np.int32
+	elif numpy_native_number is np.float64_t:
+		p_dtype = np.float64
+	else:
+		p_dtype = np.float32
+
+	# declaration
+	cdef:
+		Py_ssize_t i, chunk_start, chunk_len, leftover_len
+		np.ndarray[numpy_native_number] buffer
+		np.ndarray[numpy_native_number] result
+		chunk chunk
+
+
+	# initialization
+	chunk_len = a1.chunklen
+	leftover_len = cython.cmod(a1.shape[0], a1.chunklen)
+
+	try:
+		result = np.empty((chunk_len, ), dtype=p_dtype)
+		buffer = np.empty((chunk_len, ), dtype=p_dtype)
+	except:
+		raise MemoryError("couldn't created intermediate arrays")
+
+
+	# computation
+
+	for i in range(a1.nchunks):
+		# put large chunk in buffer
+		chunk = a1.chunks[i]
+
+		chunk._getitem(0, chunk_len, buffer.data)
+
+		np.divide(buffer, denominator, out=result)
+
+		c_result.append(result)
+
+	if leftover_len > 0:
+
+		np.divide(a1.leftover_array, denominator, out=result)
+
+		#write new chunk to result carray
+		c_result.append(result[:leftover_len])
+
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+cpdef _divide_carray(carray a1, carray a2, numpy_native_number type_indicator, carray c_result):
 	'''
 		Divide one 1-dimensional carray by another, elementwise.
 
