@@ -254,12 +254,39 @@ def test_divide_float64():
 
 	assert_array_almost_equal(expected, result, decimal=4)
 
-def test_divide_multiple_chunklen_float64():
+def test_divide_unequal_chunklen_float64():
 
 	array1 = np.random.random_sample(size=(1000,))
 	array2 = np.random.random_sample(size=(1000,))
 	bcarray1 = bvec.carray(array1, chunklen=2**8, cparams=bvec.cparams(clevel=2))
 	bcarray2 = bvec.carray(array2, chunklen=2**9, cparams=bvec.cparams(clevel=2))
+
+
+	result = bcarray1.divide(bcarray2)
+	expected = np.divide(array1, array2)
+
+	assert_array_almost_equal(expected, result, decimal=4)
+
+
+def test_divide_indivisible_chunklen_float64():
+
+	array1 = np.random.random_sample(size=(1000,))
+	array2 = np.random.random_sample(size=(1000,))
+	bcarray1 = bvec.carray(array1, chunklen=256, cparams=bvec.cparams(clevel=2))
+	bcarray2 = bvec.carray(array2, chunklen=255, cparams=bvec.cparams(clevel=2))
+
+
+	result = bcarray1.divide(bcarray2)
+	expected = np.divide(array1, array2)
+
+	assert_array_almost_equal(expected, result, decimal=4)
+
+def test_divide_indivisible_chunklen_two_float64():
+
+	array1 = np.random.random_sample(size=(1000,))
+	array2 = np.random.random_sample(size=(1000,))
+	bcarray1 = bvec.carray(array1, chunklen=256, cparams=bvec.cparams(clevel=2))
+	bcarray2 = bvec.carray(array2, chunklen=85, cparams=bvec.cparams(clevel=2))
 
 
 	result = bcarray1.divide(bcarray2)

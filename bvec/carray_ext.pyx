@@ -48,7 +48,7 @@ cpdef _divide_mat_carray(carray a1, carray a2, numpy_native_number type_indicato
 	# declaration
 	cdef:
 		Py_ssize_t i, chunk_start, chunk_len, leftover_len
-		unsigned int j, current_buffer_data_size, current_buffer_element_count
+		unsigned int j, current_buffer_data_size, current_buffer_element_count, current_buffer_missing_count
 		np.ndarray[numpy_native_number] buffer_large
 		np.ndarray[numpy_native_number] buffer
 		np.ndarray[numpy_native_number] result
@@ -83,6 +83,9 @@ cpdef _divide_mat_carray(carray a1, carray a2, numpy_native_number type_indicato
 
 	# computation
 	j = 0
+	current_buffer_element_count = 0
+	current_buffer_missing_count = 0
+
 	for i in range(a_large.nchunks):
 		# put large chunk in buffer
 		chunk_large = a_large.chunks[i]
@@ -90,36 +93,86 @@ cpdef _divide_mat_carray(carray a1, carray a2, numpy_native_number type_indicato
 		chunk_large._getitem(0, chunk_len, buffer_large.data)
 
 		# fill up buffer with small chunks
-		current_buffer_element_count = 0
-		while(current_buffer_element_count < chunk_len and j < a_small.nchunks):
-			chunk_small = a_small.chunks[j]
 
+		# can we fit a whole chunk?
+		while(current_buffer_element_count + a_small.chunklen <= chunk_len and j < a_small.nchunks):
+			chunk_small = a_small.chunks[j]
+			print("got small chunk: {0}".format(j))
+
+			# calculate size (bytes) of data
 			current_buffer_data_size = current_buffer_element_count * buffer.itemsize
+
+			# copy data from small chunk
 			chunk_small._getitem(0, a_small.chunklen, buffer.data + current_buffer_data_size)
+
 			current_buffer_element_count += a_small.chunklen
 			j += 1
+
+		# buffer not full?
+		if(current_buffer_element_count < chunk_len):
+
+			# find gap
+			current_buffer_missing_count = chunk_len - current_buffer_element_count
+
+			# do we have chunks left in the small chunk carray?
+			if(j < a_small.nchunks):
+				# use the next chunk
+				chunk_small = a_small.chunks[j]
+				print("got small chunk: {0}".format(j))
+
+				# fill gap
+				buffer[current_buffer_element_count:] = chunk_small[:current_buffer_missing_count]
+
+
+			else:
+				# use leftover_array instead
+				buffer[current_buffer_element_count:] = a_small.leftover_array[:current_buffer_missing_count]
+
+
+			current_buffer_element_count += current_buffer_missing_count
+
 
 		if(large_first):
 			np.divide(buffer_large, buffer, out=result)
 		else:
 			np.divide(buffer, buffer_large, out=result)
 
+
+		# did we fill the buffer with a partial chunk?
+		if(current_buffer_missing_count > 0 and j < a_small.nchunks):
+
+			# calculate leftover in the partial chunk
+			current_buffer_element_count = a_small.chunklen - current_buffer_missing_count
+
+			# fill buffer for next iteration with remainder of partial chunk
+			buffer[:current_buffer_element_count] = chunk_small[current_buffer_missing_count:]
+
+			# reset missing count
+			current_buffer_missing_count = 0
+			j += 1
+		else:
+			current_buffer_element_count = 0
+
+
 		c_result.append(result)
 
 	if leftover_len > 0:
 
 		# fill up buffer with small chunks
-		current_buffer_element_count = 0
-		while(current_buffer_element_count < leftover_len and j < a_small.nchunks):
+		while(current_buffer_element_count + a_small.chunklen <= leftover_len and j < a_small.nchunks):
 			chunk_small = a_small.chunks[j]
+			print("got small chunk: {0}".format(j))
 
 			current_buffer_data_size = current_buffer_element_count * buffer.itemsize
 			chunk_small._getitem(0, a_small.chunklen, buffer.data + current_buffer_data_size)
 			current_buffer_element_count += a_small.chunklen
 			j += 1
 
+
 		if(small_leftover_len > 0):
-			buffer[current_buffer_element_count:(current_buffer_element_count+small_leftover_len)] = a_small.leftover_array[:small_leftover_len]
+			print(small_leftover_len)
+			print(current_buffer_element_count)
+			buffer[current_buffer_element_count:(current_buffer_element_count+small_leftover_len-current_buffer_missing_count)] = a_small.leftover_array[current_buffer_missing_count:small_leftover_len]
 
 		if(large_first):
 			np.divide(a_large.leftover_array, buffer, out=result)
