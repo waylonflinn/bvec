@@ -160,7 +160,6 @@ cpdef _divide_carray(carray a1, carray a2, numpy_native_number type_indicator, c
 		# can we fit a whole chunk?
 		while(current_buffer_element_count + a_small.chunklen <= chunk_len and j < a_small.nchunks):
 			chunk_small = a_small.chunks[j]
-			print("got small chunk: {0}".format(j))
 
 			# calculate size (bytes) of data
 			current_buffer_data_size = current_buffer_element_count * buffer.itemsize
@@ -181,7 +180,6 @@ cpdef _divide_carray(carray a1, carray a2, numpy_native_number type_indicator, c
 			if(j < a_small.nchunks):
 				# use the next chunk
 				chunk_small = a_small.chunks[j]
-				print("got small chunk: {0}".format(j))
 
 				# fill gap
 				buffer[current_buffer_element_count:] = chunk_small[:current_buffer_missing_count]
@@ -224,7 +222,6 @@ cpdef _divide_carray(carray a1, carray a2, numpy_native_number type_indicator, c
 		# fill up buffer with small chunks
 		while(current_buffer_element_count + a_small.chunklen <= leftover_len and j < a_small.nchunks):
 			chunk_small = a_small.chunks[j]
-			print("got small chunk: {0}".format(j))
 
 			current_buffer_data_size = current_buffer_element_count * buffer.itemsize
 			chunk_small._getitem(0, a_small.chunklen, buffer.data + current_buffer_data_size)
@@ -233,8 +230,6 @@ cpdef _divide_carray(carray a1, carray a2, numpy_native_number type_indicator, c
 
 
 		if(small_leftover_len > 0):
-			print(small_leftover_len)
-			print(current_buffer_element_count)
 			buffer[current_buffer_element_count:(current_buffer_element_count+small_leftover_len-current_buffer_missing_count)] = a_small.leftover_array[current_buffer_missing_count:small_leftover_len]
 
 		if(large_first):
